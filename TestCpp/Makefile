@@ -1,21 +1,16 @@
 
 #-------------------------------------------------------------------------------
 
-export LC_ALL   = zh_CN.GB2312
-export LANG     = zh_CN.GB2312
-
-#-------------------------------------------------------------------------------
-
 TARGET = TestCpp
 
 CC     = gcc
 CXX    = g++
 CFLAGS = -g -fPIC -Wno-deprecated -Wall
 
-SRCS   = $(sort $(wildcard *.cpp *.cc *.c))
-OBJS   = $(patsubst %.cpp,%.o, $(patsubst %.cc,%.o, $(patsubst %.c,%.o, $(SRCS))))
 INCS   = 
 LIBS   = -lpthread
+SRCS   = $(sort $(wildcard *.cpp *.cc *.c))
+OBJS   = $(patsubst %.cpp,%.o, $(patsubst %.cc,%.o, $(patsubst %.c,%.o, $(SRCS))))
 DEPS   = $(foreach obj, $(OBJS), $(dir $(obj)).$(basename $(notdir $(obj))).d)
 
 #-------------------------------------------------------------------------------
