@@ -11,3 +11,11 @@
 *.lai
 *.la
 *.a
+
+# Compiled binary files
+*.exe
+
+# IDE files
+.project
+.cproject
+.settings
