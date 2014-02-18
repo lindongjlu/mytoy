@@ -19,6 +19,7 @@
 .project
 .cproject
 .settings
+.classpath
 
 # other 
 TestThrift/target
