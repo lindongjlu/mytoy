@@ -32,7 +32,7 @@ public class TestClient {
 					protocol);
 			transport.open();
 			
-			TestMessage testMsg = new TestMessage("topic", ByteBuffer.wrap("123".getBytes()), 2, "abc");
+			TestMessage testMsg = new TestMessage("topic", ByteBuffer.wrap("123".getBytes()), 2, "哇咔咔");
 			
 			long result = client.ping(278, testMsg);
 			System.out.println("Thrify client result =: " + result);
