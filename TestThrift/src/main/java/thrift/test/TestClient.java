@@ -31,7 +31,10 @@ public class TestClient {
 			TestService.Client client = new TestService.Client(
 					protocol);
 			transport.open();
-			long result = client.ping(278, new TestMessage("topic", ByteBuffer.wrap("123".getBytes()), 2, "abc", "haha", Collections.<String, String>emptyMap()));
+			
+			TestMessage testMsg = new TestMessage("topic", ByteBuffer.wrap("123".getBytes()), 2, "abc");
+			
+			long result = client.ping(278, testMsg);
 			System.out.println("Thrify client result =: " + result);
 		} catch (TTransportException e) {
 			e.printStackTrace();

@@ -52,8 +52,8 @@ public class TestMessage implements org.apache.thrift.TBase<TestMessage, TestMes
   public ByteBuffer content; // required
   public long createdTime; // required
   public String id; // required
-  public String ipAddress; // required
-  public Map<String,String> props; // required
+  public String ipAddress; // optional
+  public Map<String,String> props; // optional
 
   /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
   public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -131,20 +131,21 @@ public class TestMessage implements org.apache.thrift.TBase<TestMessage, TestMes
   // isset id assignments
   private static final int __CREATEDTIME_ISSET_ID = 0;
   private byte __isset_bitfield = 0;
+  private _Fields optionals[] = {_Fields.IP_ADDRESS,_Fields.PROPS};
   public static final Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> metaDataMap;
   static {
     Map<_Fields, org.apache.thrift.meta_data.FieldMetaData> tmpMap = new EnumMap<_Fields, org.apache.thrift.meta_data.FieldMetaData>(_Fields.class);
-    tmpMap.put(_Fields.TOPIC, new org.apache.thrift.meta_data.FieldMetaData("topic", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.TOPIC, new org.apache.thrift.meta_data.FieldMetaData("topic", org.apache.thrift.TFieldRequirementType.REQUIRED, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-    tmpMap.put(_Fields.CONTENT, new org.apache.thrift.meta_data.FieldMetaData("content", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.CONTENT, new org.apache.thrift.meta_data.FieldMetaData("content", org.apache.thrift.TFieldRequirementType.REQUIRED, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING        , true)));
-    tmpMap.put(_Fields.CREATED_TIME, new org.apache.thrift.meta_data.FieldMetaData("createdTime", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.CREATED_TIME, new org.apache.thrift.meta_data.FieldMetaData("createdTime", org.apache.thrift.TFieldRequirementType.REQUIRED, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I64)));
-    tmpMap.put(_Fields.ID, new org.apache.thrift.meta_data.FieldMetaData("id", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.ID, new org.apache.thrift.meta_data.FieldMetaData("id", org.apache.thrift.TFieldRequirementType.REQUIRED, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-    tmpMap.put(_Fields.IP_ADDRESS, new org.apache.thrift.meta_data.FieldMetaData("ipAddress", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.IP_ADDRESS, new org.apache.thrift.meta_data.FieldMetaData("ipAddress", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING)));
-    tmpMap.put(_Fields.PROPS, new org.apache.thrift.meta_data.FieldMetaData("props", org.apache.thrift.TFieldRequirementType.DEFAULT, 
+    tmpMap.put(_Fields.PROPS, new org.apache.thrift.meta_data.FieldMetaData("props", org.apache.thrift.TFieldRequirementType.OPTIONAL, 
         new org.apache.thrift.meta_data.MapMetaData(org.apache.thrift.protocol.TType.MAP, 
             new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING), 
             new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING))));
@@ -159,9 +160,7 @@ public class TestMessage implements org.apache.thrift.TBase<TestMessage, TestMes
     String topic,
     ByteBuffer content,
     long createdTime,
-    String id,
-    String ipAddress,
-    Map<String,String> props)
+    String id)
   {
     this();
     this.topic = topic;
@@ -169,8 +168,6 @@ public class TestMessage implements org.apache.thrift.TBase<TestMessage, TestMes
     this.createdTime = createdTime;
     setCreatedTimeIsSet(true);
     this.id = id;
-    this.ipAddress = ipAddress;
-    this.props = props;
   }
 
   /**
@@ -667,28 +664,42 @@ public class TestMessage implements org.apache.thrift.TBase<TestMessage, TestMes
       sb.append(this.id);
     }
     first = false;
-    if (!first) sb.append(", ");
-    sb.append("ipAddress:");
-    if (this.ipAddress == null) {
-      sb.append("null");
-    } else {
-      sb.append(this.ipAddress);
+    if (isSetIpAddress()) {
+      if (!first) sb.append(", ");
+      sb.append("ipAddress:");
+      if (this.ipAddress == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.ipAddress);
+      }
+      first = false;
     }
-    first = false;
-    if (!first) sb.append(", ");
-    sb.append("props:");
-    if (this.props == null) {
-      sb.append("null");
-    } else {
-      sb.append(this.props);
+    if (isSetProps()) {
+      if (!first) sb.append(", ");
+      sb.append("props:");
+      if (this.props == null) {
+        sb.append("null");
+      } else {
+        sb.append(this.props);
+      }
+      first = false;
     }
-    first = false;
     sb.append(")");
     return sb.toString();
   }
 
   public void validate() throws org.apache.thrift.TException {
     // check for required fields
+    if (topic == null) {
+      throw new org.apache.thrift.protocol.TProtocolException("Required field 'topic' was not present! Struct: " + toString());
+    }
+    if (content == null) {
+      throw new org.apache.thrift.protocol.TProtocolException("Required field 'content' was not present! Struct: " + toString());
+    }
+    // alas, we cannot check 'createdTime' because it's a primitive and you chose the non-beans generator.
+    if (id == null) {
+      throw new org.apache.thrift.protocol.TProtocolException("Required field 'id' was not present! Struct: " + toString());
+    }
     // check for sub-struct validity
   }
 
@@ -796,6 +807,9 @@ public class TestMessage implements org.apache.thrift.TBase<TestMessage, TestMes
       iprot.readStructEnd();
 
       // check for required fields of primitive type, which can't be checked in the validate method
+      if (!struct.isSetCreatedTime()) {
+        throw new org.apache.thrift.protocol.TProtocolException("Required field 'createdTime' was not found in serialized data! Struct: " + toString());
+      }
       struct.validate();
     }
 
@@ -822,22 +836,26 @@ public class TestMessage implements org.apache.thrift.TBase<TestMessage, TestMes
         oprot.writeFieldEnd();
       }
       if (struct.ipAddress != null) {
-        oprot.writeFieldBegin(IP_ADDRESS_FIELD_DESC);
-        oprot.writeString(struct.ipAddress);
-        oprot.writeFieldEnd();
+        if (struct.isSetIpAddress()) {
+          oprot.writeFieldBegin(IP_ADDRESS_FIELD_DESC);
+          oprot.writeString(struct.ipAddress);
+          oprot.writeFieldEnd();
+        }
       }
       if (struct.props != null) {
-        oprot.writeFieldBegin(PROPS_FIELD_DESC);
-        {
-          oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, struct.props.size()));
-          for (Map.Entry<String, String> _iter4 : struct.props.entrySet())
+        if (struct.isSetProps()) {
+          oprot.writeFieldBegin(PROPS_FIELD_DESC);
           {
-            oprot.writeString(_iter4.getKey());
-            oprot.writeString(_iter4.getValue());
+            oprot.writeMapBegin(new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, struct.props.size()));
+            for (Map.Entry<String, String> _iter4 : struct.props.entrySet())
+            {
+              oprot.writeString(_iter4.getKey());
+              oprot.writeString(_iter4.getValue());
+            }
+            oprot.writeMapEnd();
           }
-          oprot.writeMapEnd();
+          oprot.writeFieldEnd();
         }
-        oprot.writeFieldEnd();
       }
       oprot.writeFieldStop();
       oprot.writeStructEnd();
@@ -856,38 +874,18 @@ public class TestMessage implements org.apache.thrift.TBase<TestMessage, TestMes
     @Override
     public void write(org.apache.thrift.protocol.TProtocol prot, TestMessage struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
+      oprot.writeString(struct.topic);
+      oprot.writeBinary(struct.content);
+      oprot.writeI64(struct.createdTime);
+      oprot.writeString(struct.id);
       BitSet optionals = new BitSet();
-      if (struct.isSetTopic()) {
+      if (struct.isSetIpAddress()) {
         optionals.set(0);
       }
-      if (struct.isSetContent()) {
+      if (struct.isSetProps()) {
         optionals.set(1);
       }
-      if (struct.isSetCreatedTime()) {
-        optionals.set(2);
-      }
-      if (struct.isSetId()) {
-        optionals.set(3);
-      }
-      if (struct.isSetIpAddress()) {
-        optionals.set(4);
-      }
-      if (struct.isSetProps()) {
-        optionals.set(5);
-      }
-      oprot.writeBitSet(optionals, 6);
-      if (struct.isSetTopic()) {
-        oprot.writeString(struct.topic);
-      }
-      if (struct.isSetContent()) {
-        oprot.writeBinary(struct.content);
-      }
-      if (struct.isSetCreatedTime()) {
-        oprot.writeI64(struct.createdTime);
-      }
-      if (struct.isSetId()) {
-        oprot.writeString(struct.id);
-      }
+      oprot.writeBitSet(optionals, 2);
       if (struct.isSetIpAddress()) {
         oprot.writeString(struct.ipAddress);
       }
@@ -906,28 +904,20 @@ public class TestMessage implements org.apache.thrift.TBase<TestMessage, TestMes
     @Override
     public void read(org.apache.thrift.protocol.TProtocol prot, TestMessage struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
-      BitSet incoming = iprot.readBitSet(6);
+      struct.topic = iprot.readString();
+      struct.setTopicIsSet(true);
+      struct.content = iprot.readBinary();
+      struct.setContentIsSet(true);
+      struct.createdTime = iprot.readI64();
+      struct.setCreatedTimeIsSet(true);
+      struct.id = iprot.readString();
+      struct.setIdIsSet(true);
+      BitSet incoming = iprot.readBitSet(2);
       if (incoming.get(0)) {
-        struct.topic = iprot.readString();
-        struct.setTopicIsSet(true);
-      }
-      if (incoming.get(1)) {
-        struct.content = iprot.readBinary();
-        struct.setContentIsSet(true);
-      }
-      if (incoming.get(2)) {
-        struct.createdTime = iprot.readI64();
-        struct.setCreatedTimeIsSet(true);
-      }
-      if (incoming.get(3)) {
-        struct.id = iprot.readString();
-        struct.setIdIsSet(true);
-      }
-      if (incoming.get(4)) {
         struct.ipAddress = iprot.readString();
         struct.setIpAddressIsSet(true);
       }
-      if (incoming.get(5)) {
+      if (incoming.get(1)) {
         {
           org.apache.thrift.protocol.TMap _map6 = new org.apache.thrift.protocol.TMap(org.apache.thrift.protocol.TType.STRING, org.apache.thrift.protocol.TType.STRING, iprot.readI32());
           struct.props = new HashMap<String,String>(2*_map6.size);
