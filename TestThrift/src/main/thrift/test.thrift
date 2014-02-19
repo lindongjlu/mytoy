@@ -1,6 +1,6 @@
 namespace java thrift.test
 
-struct Message 
+struct TestMessage 
 {
 	1: string topic
 	2: binary content
@@ -12,5 +12,5 @@ struct Message
 
 service TestService 
 {
-	i64 ping(1: i32 length, 2: Message msg)
+	i64 ping(1: i32 length, 2: TestMessage msg)
 }

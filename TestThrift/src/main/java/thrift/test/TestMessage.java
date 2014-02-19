@@ -32,8 +32,8 @@ import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class Message implements org.apache.thrift.TBase<Message, Message._Fields>, java.io.Serializable, Cloneable, Comparable<Message> {
-  private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("Message");
+public class TestMessage implements org.apache.thrift.TBase<TestMessage, TestMessage._Fields>, java.io.Serializable, Cloneable, Comparable<TestMessage> {
+  private static final org.apache.thrift.protocol.TStruct STRUCT_DESC = new org.apache.thrift.protocol.TStruct("TestMessage");
 
   private static final org.apache.thrift.protocol.TField TOPIC_FIELD_DESC = new org.apache.thrift.protocol.TField("topic", org.apache.thrift.protocol.TType.STRING, (short)1);
   private static final org.apache.thrift.protocol.TField CONTENT_FIELD_DESC = new org.apache.thrift.protocol.TField("content", org.apache.thrift.protocol.TType.STRING, (short)2);
@@ -44,8 +44,8 @@ public class Message implements org.apache.thrift.TBase<Message, Message._Fields
 
   private static final Map<Class<? extends IScheme>, SchemeFactory> schemes = new HashMap<Class<? extends IScheme>, SchemeFactory>();
   static {
-    schemes.put(StandardScheme.class, new MessageStandardSchemeFactory());
-    schemes.put(TupleScheme.class, new MessageTupleSchemeFactory());
+    schemes.put(StandardScheme.class, new TestMessageStandardSchemeFactory());
+    schemes.put(TupleScheme.class, new TestMessageTupleSchemeFactory());
   }
 
   public String topic; // required
@@ -149,13 +149,13 @@ public class Message implements org.apache.thrift.TBase<Message, Message._Fields
             new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING), 
             new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.STRING))));
     metaDataMap = Collections.unmodifiableMap(tmpMap);
-    org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(Message.class, metaDataMap);
+    org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(TestMessage.class, metaDataMap);
   }
 
-  public Message() {
+  public TestMessage() {
   }
 
-  public Message(
+  public TestMessage(
     String topic,
     ByteBuffer content,
     long createdTime,
@@ -176,7 +176,7 @@ public class Message implements org.apache.thrift.TBase<Message, Message._Fields
   /**
    * Performs a deep copy on <i>other</i>.
    */
-  public Message(Message other) {
+  public TestMessage(TestMessage other) {
     __isset_bitfield = other.__isset_bitfield;
     if (other.isSetTopic()) {
       this.topic = other.topic;
@@ -198,8 +198,8 @@ public class Message implements org.apache.thrift.TBase<Message, Message._Fields
     }
   }
 
-  public Message deepCopy() {
-    return new Message(this);
+  public TestMessage deepCopy() {
+    return new TestMessage(this);
   }
 
   @Override
@@ -217,7 +217,7 @@ public class Message implements org.apache.thrift.TBase<Message, Message._Fields
     return this.topic;
   }
 
-  public Message setTopic(String topic) {
+  public TestMessage setTopic(String topic) {
     this.topic = topic;
     return this;
   }
@@ -246,12 +246,12 @@ public class Message implements org.apache.thrift.TBase<Message, Message._Fields
     return content;
   }
 
-  public Message setContent(byte[] content) {
+  public TestMessage setContent(byte[] content) {
     setContent(content == null ? (ByteBuffer)null : ByteBuffer.wrap(content));
     return this;
   }
 
-  public Message setContent(ByteBuffer content) {
+  public TestMessage setContent(ByteBuffer content) {
     this.content = content;
     return this;
   }
@@ -275,7 +275,7 @@ public class Message implements org.apache.thrift.TBase<Message, Message._Fields
     return this.createdTime;
   }
 
-  public Message setCreatedTime(long createdTime) {
+  public TestMessage setCreatedTime(long createdTime) {
     this.createdTime = createdTime;
     setCreatedTimeIsSet(true);
     return this;
@@ -298,7 +298,7 @@ public class Message implements org.apache.thrift.TBase<Message, Message._Fields
     return this.id;
   }
 
-  public Message setId(String id) {
+  public TestMessage setId(String id) {
     this.id = id;
     return this;
   }
@@ -322,7 +322,7 @@ public class Message implements org.apache.thrift.TBase<Message, Message._Fields
     return this.ipAddress;
   }
 
-  public Message setIpAddress(String ipAddress) {
+  public TestMessage setIpAddress(String ipAddress) {
     this.ipAddress = ipAddress;
     return this;
   }
@@ -357,7 +357,7 @@ public class Message implements org.apache.thrift.TBase<Message, Message._Fields
     return this.props;
   }
 
-  public Message setProps(Map<String,String> props) {
+  public TestMessage setProps(Map<String,String> props) {
     this.props = props;
     return this;
   }
@@ -481,12 +481,12 @@ public class Message implements org.apache.thrift.TBase<Message, Message._Fields
   public boolean equals(Object that) {
     if (that == null)
       return false;
-    if (that instanceof Message)
-      return this.equals((Message)that);
+    if (that instanceof TestMessage)
+      return this.equals((TestMessage)that);
     return false;
   }
 
-  public boolean equals(Message that) {
+  public boolean equals(TestMessage that) {
     if (that == null)
       return false;
 
@@ -553,7 +553,7 @@ public class Message implements org.apache.thrift.TBase<Message, Message._Fields
   }
 
   @Override
-  public int compareTo(Message other) {
+  public int compareTo(TestMessage other) {
     if (!getClass().equals(other.getClass())) {
       return getClass().getName().compareTo(other.getClass().getName());
     }
@@ -637,7 +637,7 @@ public class Message implements org.apache.thrift.TBase<Message, Message._Fields
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder("Message(");
+    StringBuilder sb = new StringBuilder("TestMessage(");
     boolean first = true;
 
     sb.append("topic:");
@@ -710,15 +710,15 @@ public class Message implements org.apache.thrift.TBase<Message, Message._Fields
     }
   }
 
-  private static class MessageStandardSchemeFactory implements SchemeFactory {
-    public MessageStandardScheme getScheme() {
-      return new MessageStandardScheme();
+  private static class TestMessageStandardSchemeFactory implements SchemeFactory {
+    public TestMessageStandardScheme getScheme() {
+      return new TestMessageStandardScheme();
     }
   }
 
-  private static class MessageStandardScheme extends StandardScheme<Message> {
+  private static class TestMessageStandardScheme extends StandardScheme<TestMessage> {
 
-    public void read(org.apache.thrift.protocol.TProtocol iprot, Message struct) throws org.apache.thrift.TException {
+    public void read(org.apache.thrift.protocol.TProtocol iprot, TestMessage struct) throws org.apache.thrift.TException {
       org.apache.thrift.protocol.TField schemeField;
       iprot.readStructBegin();
       while (true)
@@ -799,7 +799,7 @@ public class Message implements org.apache.thrift.TBase<Message, Message._Fields
       struct.validate();
     }
 
-    public void write(org.apache.thrift.protocol.TProtocol oprot, Message struct) throws org.apache.thrift.TException {
+    public void write(org.apache.thrift.protocol.TProtocol oprot, TestMessage struct) throws org.apache.thrift.TException {
       struct.validate();
 
       oprot.writeStructBegin(STRUCT_DESC);
@@ -845,16 +845,16 @@ public class Message implements org.apache.thrift.TBase<Message, Message._Fields
 
   }
 
-  private static class MessageTupleSchemeFactory implements SchemeFactory {
-    public MessageTupleScheme getScheme() {
-      return new MessageTupleScheme();
+  private static class TestMessageTupleSchemeFactory implements SchemeFactory {
+    public TestMessageTupleScheme getScheme() {
+      return new TestMessageTupleScheme();
     }
   }
 
-  private static class MessageTupleScheme extends TupleScheme<Message> {
+  private static class TestMessageTupleScheme extends TupleScheme<TestMessage> {
 
     @Override
-    public void write(org.apache.thrift.protocol.TProtocol prot, Message struct) throws org.apache.thrift.TException {
+    public void write(org.apache.thrift.protocol.TProtocol prot, TestMessage struct) throws org.apache.thrift.TException {
       TTupleProtocol oprot = (TTupleProtocol) prot;
       BitSet optionals = new BitSet();
       if (struct.isSetTopic()) {
@@ -904,7 +904,7 @@ public class Message implements org.apache.thrift.TBase<Message, Message._Fields
     }
 
     @Override
-    public void read(org.apache.thrift.protocol.TProtocol prot, Message struct) throws org.apache.thrift.TException {
+    public void read(org.apache.thrift.protocol.TProtocol prot, TestMessage struct) throws org.apache.thrift.TException {
       TTupleProtocol iprot = (TTupleProtocol) prot;
       BitSet incoming = iprot.readBitSet(6);
       if (incoming.get(0)) {

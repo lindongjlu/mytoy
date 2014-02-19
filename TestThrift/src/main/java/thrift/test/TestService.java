@@ -36,13 +36,13 @@ public class TestService {
 
   public interface Iface {
 
-    public long ping(int length, Message msg) throws org.apache.thrift.TException;
+    public long ping(int length, TestMessage msg) throws org.apache.thrift.TException;
 
   }
 
   public interface AsyncIface {
 
-    public void ping(int length, Message msg, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
+    public void ping(int length, TestMessage msg, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException;
 
   }
 
@@ -66,13 +66,13 @@ public class TestService {
       super(iprot, oprot);
     }
 
-    public long ping(int length, Message msg) throws org.apache.thrift.TException
+    public long ping(int length, TestMessage msg) throws org.apache.thrift.TException
     {
       send_ping(length, msg);
       return recv_ping();
     }
 
-    public void send_ping(int length, Message msg) throws org.apache.thrift.TException
+    public void send_ping(int length, TestMessage msg) throws org.apache.thrift.TException
     {
       ping_args args = new ping_args();
       args.setLength(length);
@@ -108,7 +108,7 @@ public class TestService {
       super(protocolFactory, clientManager, transport);
     }
 
-    public void ping(int length, Message msg, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
+    public void ping(int length, TestMessage msg, org.apache.thrift.async.AsyncMethodCallback resultHandler) throws org.apache.thrift.TException {
       checkReady();
       ping_call method_call = new ping_call(length, msg, resultHandler, this, ___protocolFactory, ___transport);
       this.___currentMethod = method_call;
@@ -117,8 +117,8 @@ public class TestService {
 
     public static class ping_call extends org.apache.thrift.async.TAsyncMethodCall {
       private int length;
-      private Message msg;
-      public ping_call(int length, Message msg, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
+      private TestMessage msg;
+      public ping_call(int length, TestMessage msg, org.apache.thrift.async.AsyncMethodCallback resultHandler, org.apache.thrift.async.TAsyncClient client, org.apache.thrift.protocol.TProtocolFactory protocolFactory, org.apache.thrift.transport.TNonblockingTransport transport) throws org.apache.thrift.TException {
         super(client, protocolFactory, transport, resultHandler, false);
         this.length = length;
         this.msg = msg;
@@ -265,7 +265,7 @@ public class TestService {
     }
 
     public int length; // required
-    public Message msg; // required
+    public TestMessage msg; // required
 
     /** The set of fields this struct contains, along with convenience methods for finding and manipulating them. */
     public enum _Fields implements org.apache.thrift.TFieldIdEnum {
@@ -337,7 +337,7 @@ public class TestService {
       tmpMap.put(_Fields.LENGTH, new org.apache.thrift.meta_data.FieldMetaData("length", org.apache.thrift.TFieldRequirementType.DEFAULT, 
           new org.apache.thrift.meta_data.FieldValueMetaData(org.apache.thrift.protocol.TType.I32)));
       tmpMap.put(_Fields.MSG, new org.apache.thrift.meta_data.FieldMetaData("msg", org.apache.thrift.TFieldRequirementType.DEFAULT, 
-          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, Message.class)));
+          new org.apache.thrift.meta_data.StructMetaData(org.apache.thrift.protocol.TType.STRUCT, TestMessage.class)));
       metaDataMap = Collections.unmodifiableMap(tmpMap);
       org.apache.thrift.meta_data.FieldMetaData.addStructMetaDataMap(ping_args.class, metaDataMap);
     }
@@ -347,7 +347,7 @@ public class TestService {
 
     public ping_args(
       int length,
-      Message msg)
+      TestMessage msg)
     {
       this();
       this.length = length;
@@ -362,7 +362,7 @@ public class TestService {
       __isset_bitfield = other.__isset_bitfield;
       this.length = other.length;
       if (other.isSetMsg()) {
-        this.msg = new Message(other.msg);
+        this.msg = new TestMessage(other.msg);
       }
     }
 
@@ -400,11 +400,11 @@ public class TestService {
       __isset_bitfield = EncodingUtils.setBit(__isset_bitfield, __LENGTH_ISSET_ID, value);
     }
 
-    public Message getMsg() {
+    public TestMessage getMsg() {
       return this.msg;
     }
 
-    public ping_args setMsg(Message msg) {
+    public ping_args setMsg(TestMessage msg) {
       this.msg = msg;
       return this;
     }
@@ -438,7 +438,7 @@ public class TestService {
         if (value == null) {
           unsetMsg();
         } else {
-          setMsg((Message)value);
+          setMsg((TestMessage)value);
         }
         break;
 
@@ -628,7 +628,7 @@ public class TestService {
               break;
             case 2: // MSG
               if (schemeField.type == org.apache.thrift.protocol.TType.STRUCT) {
-                struct.msg = new Message();
+                struct.msg = new TestMessage();
                 struct.msg.read(iprot);
                 struct.setMsgIsSet(true);
               } else { 
@@ -700,7 +700,7 @@ public class TestService {
           struct.setLengthIsSet(true);
         }
         if (incoming.get(1)) {
-          struct.msg = new Message();
+          struct.msg = new TestMessage();
           struct.msg.read(iprot);
           struct.setMsgIsSet(true);
         }
