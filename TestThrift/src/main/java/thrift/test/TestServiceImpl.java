@@ -13,7 +13,8 @@ public class TestServiceImpl implements TestService.Iface {
 		TTransport trans = new TIOStreamTransport(System.out);
 		msg.write(new TJSONProtocol(trans));
 		msg.write(new TSimpleJSONProtocol(trans));
-		trans.close();
+		trans.flush();
+		System.out.println();
 		return 123;
 	}
 
