@@ -34,10 +34,12 @@ public class TestClient {
 
 		System.out.println("channel isActive:" + nioSocketChannel.isActive());
 
-		nioSocketChannel.writeAndFlush(Unpooled.wrappedBuffer("你好".getBytes()))
-				.get();
-
-		nioSocketChannel.close().get();
+		for(int i=0; i<10; ++i)
+		{
+			nioSocketChannel.writeAndFlush(Unpooled.wrappedBuffer(("你好" + i).getBytes())).sync();
+		}
+		
+		nioSocketChannel.close().sync();
 		System.out.println("channel close!");
 
 		eventLoopGroup.shutdownGracefully();

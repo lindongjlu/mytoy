@@ -92,8 +92,11 @@ class Acceptor extends ChannelInboundHandlerAdapter {
 	@Override
 	@SuppressWarnings("unchecked")
 	public void channelRead(ChannelHandlerContext ctx, Object msg) {
+		
 		final Channel child = (Channel) msg;
-
+		
+		System.out.println("accept: " + child.remoteAddress());
+		
 		child.pipeline().addLast(childHandler);
 
 		for (Entry<ChannelOption<?>, Object> e : childOptions.entrySet()) {
@@ -150,7 +153,7 @@ class EchoServerHandler extends ChannelInboundHandlerAdapter {
 		byte[] bytes = new byte[byteBuf.readableBytes()];
 		byteBuf.readBytes(bytes);
 		System.out.println("recive: " + new String(bytes));
-		ctx.write(Unpooled.wrappedBuffer(bytes));
+		// ctx.write(Unpooled.wrappedBuffer(bytes));
 	}
 
 	@Override
