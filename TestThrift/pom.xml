@@ -12,7 +12,7 @@
 				<artifactId>maven-thrift-plugin</artifactId>
 				<version>0.1.11</version>
 				<configuration>
-					<thriftExecutable>tools/thrift-0.9.1.exe</thriftExecutable>
+					<thriftExecutable>tools/thrift.exe</thriftExecutable>
 				</configuration>
 				<executions>
 					<execution>
@@ -38,17 +38,17 @@
 		<dependency>
 			<groupId>io.netty</groupId>
 			<artifactId>netty-all</artifactId>
-			<version>4.0.15.Final</version>
+			<version>4.0.18.Final</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
-			<version>16.0.1</version>
+			<version>17.0-rc2</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.inject</groupId>
 			<artifactId>guice</artifactId>
-			<version>4.0-beta</version>
+			<version>4.0-beta4</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.thrift</groupId>

@@ -8,6 +8,7 @@ struct TestMessage
 	4: required string id
 	5: optional string ipAddress
 	6: optional map<string,string> props
+	7: i32 abc
 }
 
 service TestService 
