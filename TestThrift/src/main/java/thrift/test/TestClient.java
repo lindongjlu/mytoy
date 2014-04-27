@@ -1,11 +1,11 @@
 package thrift.test;
 
 import java.nio.ByteBuffer;
-import java.util.Collections;
 
 import org.apache.thrift.TException;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocol;
+import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TSocket;
 import org.apache.thrift.transport.TTransport;
 import org.apache.thrift.transport.TTransportException;
@@ -25,7 +25,7 @@ public class TestClient {
 		try {
 			transport = new TSocket(SERVER_IP, SERVER_PORT, TIMEOUT);
 			// 协议要和服务端一致
-			TProtocol protocol = new TBinaryProtocol(transport);
+			TProtocol protocol = new TBinaryProtocol(new TFramedTransport(transport));
 			// TProtocol protocol = new TCompactProtocol(transport);
 			// TProtocol protocol = new TJSONProtocol(transport);
 			TestService.Client client = new TestService.Client(

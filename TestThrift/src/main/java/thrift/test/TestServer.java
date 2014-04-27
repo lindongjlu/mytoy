@@ -2,9 +2,13 @@ package thrift.test;
 
 import org.apache.thrift.TProcessor;
 import org.apache.thrift.protocol.TBinaryProtocol;
+import org.apache.thrift.protocol.TProtocol;
+import org.apache.thrift.protocol.TProtocolFactory;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TSimpleServer;
+import org.apache.thrift.transport.TFramedTransport;
 import org.apache.thrift.transport.TServerSocket;
+import org.apache.thrift.transport.TTransport;
 
 public class TestServer {
 
@@ -23,7 +27,15 @@ public class TestServer {
 			TServerSocket serverTransport = new TServerSocket(SERVER_PORT);
 			TServer.Args tArgs = new TServer.Args(serverTransport);
 			tArgs.processor(tprocessor);
-			tArgs.protocolFactory(new TBinaryProtocol.Factory());
+			// tArgs.protocolFactory(new TBinaryProtocol.Factory());
+			tArgs.protocolFactory(new TProtocolFactory() {
+				
+				@Override
+				public TProtocol getProtocol(TTransport trans) {
+					return new TBinaryProtocol.Factory().getProtocol(new TFramedTransport(trans));
+				}
+			});
+			
 			// tArgs.protocolFactory(new TCompactProtocol.Factory());
 			// tArgs.protocolFactory(new TJSONProtocol.Factory());
 			TServer server = new TSimpleServer(tArgs);

@@ -16,7 +16,7 @@ public class TestServiceEx {
 				int length, TestMessage msg);
 	}
 	
-	public class Client extends TServiceClientEx implements Iface {
+	public static class Client extends TServiceClientEx implements Iface {
 
 		public Client(TClientHandle handle) {
 			super(handle);
