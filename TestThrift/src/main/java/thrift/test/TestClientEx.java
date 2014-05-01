@@ -27,13 +27,7 @@ public class TestClientEx {
 		
 		// netty init start
 		
-		TNettyHandle nettyHandle = new TNettyHandle(new TProtocolFactory() {
-			
-			@Override
-			public TProtocol getProtocol(TTransport transport) {
-				return new TBinaryProtocol(transport);
-			}
-		});
+		TNettyHandle nettyHandle = new TNettyHandle(new TBinaryProtocol.Factory());
 		
 		EventLoopGroup eventLoopGroup = new NioEventLoopGroup();
 

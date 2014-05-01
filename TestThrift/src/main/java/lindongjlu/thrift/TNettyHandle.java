@@ -79,7 +79,7 @@ public class TNettyHandle extends ChannelDuplexHandler implements TClientHandle 
 		return future;
 	}
 	
-	class Session {
+	private static class Session {
 		TBase result;
 		SettableFuture<TBase> future;
 	}
