@@ -9,7 +9,7 @@
 		<dependency>
 		    <groupId>io.netty</groupId>
 		    <artifactId>netty-example</artifactId>
-		    <version>4.0.15.Final</version>
+		    <version>4.0.19.Final</version>
 		</dependency>
 	</dependencies>
 </project>

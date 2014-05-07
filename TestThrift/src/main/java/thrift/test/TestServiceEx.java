@@ -1,7 +1,7 @@
 package thrift.test;
 
-import lindongjlu.thrift.TClientHandle;
-import lindongjlu.thrift.TServiceClientEx;
+import lindongjlu.thrift.TAbstractClient;
+import lindongjlu.thrift.TBaseClient;
 import thrift.test.TestService.ping_args;
 import thrift.test.TestService.ping_result;
 
@@ -16,10 +16,10 @@ public class TestServiceEx {
 				int length, TestMessage msg);
 	}
 	
-	public static class Client extends TServiceClientEx implements Iface {
+	public static class Client extends TAbstractClient<Client> implements Iface {
 
-		public Client(TClientHandle handle) {
-			super(handle);
+		public Client(TBaseClient<?> baseClient) {
+			super(baseClient);
 		}
 
 		@Override
