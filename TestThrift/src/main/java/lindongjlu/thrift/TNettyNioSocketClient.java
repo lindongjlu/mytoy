@@ -3,6 +3,7 @@ package lindongjlu.thrift;
 import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelDuplexHandler;
@@ -68,69 +69,86 @@ public class TNettyNioSocketClient implements
 
 	@Override
 	public ListenableFuture<TNettyNioSocketClient> open() {
+		try {
+			final SettableFuture<TNettyNioSocketClient> openFuture = SettableFuture
+					.create();
+			this.eventLoop.register(this.channel).addListener(
+					new GenericFutureListener<Future<Void>>() {
 
-		final SettableFuture<TNettyNioSocketClient> openFuture = SettableFuture
-				.create();
+						@Override
+						public void operationComplete(Future<Void> future)
+								throws Exception {
+							try {
+								if (future.isSuccess()) {
 
-		this.eventLoop.register(this.channel).addListener(
-				new GenericFutureListener<Future<Void>>() {
+									TNettyNioSocketClient.this.channel
+											.connect(
+													new InetSocketAddress(host,
+															port))
+											.addListener(
+													new GenericFutureListener<Future<Void>>() {
 
-					@Override
-					public void operationComplete(Future<Void> future)
-							throws Exception {
-						if (future.isSuccess()) {
+														@Override
+														public void operationComplete(
+																Future<Void> future)
+																throws Exception {
+															if (future
+																	.isSuccess()) {
+																openFuture
+																		.set(TNettyNioSocketClient.this);
+															} else {
+																openFuture
+																		.setException(new TTransportException(
+																				TTransportException.NOT_OPEN,
+																				future.cause()));
+															}
+														}
 
-							TNettyNioSocketClient.this.channel
-									.connect(new InetSocketAddress(host, port))
-									.addListener(
-											new GenericFutureListener<Future<Void>>() {
+													});
 
-												@Override
-												public void operationComplete(
-														Future<Void> future)
-														throws Exception {
-													if (future.isSuccess()) {
-														openFuture
-																.set(TNettyNioSocketClient.this);
-													} else {
-														openFuture
-																.setException(new TTransportException(
-																		TTransportException.NOT_OPEN,
-																		future.cause()));
-													}
-												}
-
-											});
-
-						} else {
-							openFuture.setException(new TTransportException(
-									TTransportException.NOT_OPEN, future
-											.cause()));
+								} else {
+									openFuture
+											.setException(new TTransportException(
+													TTransportException.NOT_OPEN,
+													future.cause()));
+								}
+							} catch (Throwable th) {
+								openFuture
+										.setException(new TTransportException(
+												TTransportException.NOT_OPEN,
+												th));
+							}
 						}
-					}
-				});
-
-		return openFuture;
+					});
+			return openFuture;
+		} catch (Throwable th) {
+			return Futures.immediateFailedFuture(new TTransportException(
+					TTransportException.NOT_OPEN, th));
+		}
 	}
 
 	@Override
 	public ListenableFuture<TNettyNioSocketClient> close() {
-		final SettableFuture<TNettyNioSocketClient> closeFuture = SettableFuture
-				.create();
-		this.channel.close().addListener(
-				new GenericFutureListener<Future<Void>>() {
+		try {
+			final SettableFuture<TNettyNioSocketClient> closeFuture = SettableFuture
+					.create();
+			this.channel.close().addListener(
+					new GenericFutureListener<Future<Void>>() {
 
-					@Override
-					public void operationComplete(Future<Void> future)
-							throws Exception {
-						if (future.isSuccess()) {
-							closeFuture.set(TNettyNioSocketClient.this);
-						} else {
-							closeFuture.setException(future.cause());
+						@Override
+						public void operationComplete(Future<Void> future)
+								throws Exception {
+							if (future.isSuccess()) {
+								closeFuture.set(TNettyNioSocketClient.this);
+							} else {
+								closeFuture.setException(future.cause());
+							}
 						}
-					}
-				});
-		return closeFuture;
+					});
+			return closeFuture;
+		} catch (Throwable th) {
+			return Futures.immediateFailedFuture(th);
+		}
 	}
 
 	@Override
@@ -146,9 +164,9 @@ public class TNettyNioSocketClient implements
 			channel.writeAndFlush(new RequestMsg(methodName, args, result,
 					callFuture));
 			return callFuture;
-		} catch (Exception ex) {
+		} catch (Throwable th) {
 			return Futures.immediateFailedFuture(new TTransportException(
-					TTransportException.UNKNOWN, ex));
+					TTransportException.UNKNOWN, th));
 		}
 	}
 
@@ -218,27 +236,35 @@ public class TNettyNioSocketClient implements
 			sessionMap.put(callId, new CallSession(request.result,
 					request.future));
 
-			ByteBuf byteBuf = ctx.alloc().ioBuffer();
-			int pos = byteBuf.writerIndex();
-			byteBuf.writeInt(-1);
+			try {
 
-			inputTransport.setByteBuf(byteBuf);
+				ByteBuf byteBuf = ctx.alloc().ioBuffer();
+				int pos = byteBuf.writerIndex();
+				byteBuf.writeInt(-1);
 
-			inputProtocol.writeMessageBegin(new TMessage(request.methodName,
-					TMessageType.CALL, callId));
-			request.args.write(inputProtocol);
-			inputProtocol.writeMessageEnd();
-			inputProtocol.getTransport().flush();
+				inputTransport.setByteBuf(byteBuf);
 
-			inputTransport.setByteBuf(null);
+				inputProtocol.writeMessageBegin(new TMessage(
+						request.methodName, TMessageType.CALL, callId));
+				request.args.write(inputProtocol);
+				inputProtocol.writeMessageEnd();
+				inputProtocol.getTransport().flush();
 
-			byteBuf.setInt(pos, byteBuf.writerIndex() - pos - 4);
+				inputTransport.setByteBuf(null);
 
-			ctx.write(byteBuf);
+				byteBuf.setInt(pos, byteBuf.writerIndex() - pos - 4);
+
+				ctx.write(byteBuf);
+
+			} catch (TException ex) {
+				sessionMap.remove(callId);
+				request.future.setException(ex);
+			}
 		}
 
 		@Override
-		public void channelRead(ChannelHandlerContext ctx, Object msg) {
+		public void channelRead(ChannelHandlerContext ctx, Object msg)
+				throws Exception {
 
 			if (!(msg instanceof ByteBuf)) {
 				return;
@@ -246,31 +272,38 @@ public class TNettyNioSocketClient implements
 
 			ByteBuf byteBuf = (ByteBuf) msg;
 
-			if (byteBuf.readableBytes() < 4) {
-				return;
-			}
+			while (true) {
 
-			int size = byteBuf.getInt(byteBuf.readerIndex());
-			if (byteBuf.readableBytes() < size + 4) {
-				return;
-			}
-			byteBuf.readInt();
+				if (byteBuf.readableBytes() < 4) {
+					return;
+				}
 
-			outputTransport.setByteBuf(byteBuf);
+				int size = byteBuf.getInt(byteBuf.readerIndex());
+				if (byteBuf.readableBytes() < size + 4) {
+					return;
+				}
+				byteBuf.readInt();
 
-			TMessage tmsg = null;
-			try {
-				tmsg = outputProtocol.readMessageBegin();
-			} catch (TException e) {
-				// TODO e.printStackTrace();
-				outputTransport.setByteBuf(null);
-				return;
-			}
+				outputTransport.setByteBuf(byteBuf);
 
-			CallSession session = sessionMap.remove(tmsg.seqid);
-			if (session == null) {
-				// TODO print error log
-			} else {
+				TMessage tmsg = null;
+				try {
+					tmsg = outputProtocol.readMessageBegin();
+				} catch (TException e) {
+					// data is corrupted, close channel
+					outputTransport.setByteBuf(null);
+					ctx.close();
+					return;
+				}
+
+				CallSession session = sessionMap.remove(tmsg.seqid);
+				if (session == null) {
+					// data is corrupted, close channel
+					ctx.close();
+					outputTransport.setByteBuf(null);
+					return;
+				}
+
 				try {
 					if (tmsg.type == TMessageType.EXCEPTION) {
 						session.future.setException(TApplicationException
@@ -283,9 +316,20 @@ public class TNettyNioSocketClient implements
 				} catch (TException e) {
 					session.future.setException(e);
 				}
+				outputTransport.setByteBuf(null);
 			}
+		}
 
-			inputTransport.setByteBuf(null);
+		@Override
+		public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+			if (!sessionMap.isEmpty()) {
+				TTransportException ex = new TTransportException(
+						TTransportException.END_OF_FILE, "channel is inactive!");
+				for (Entry<Integer, CallSession> entry : sessionMap.entrySet()) {
+					entry.getValue().future.setException(ex);
+				}
+				sessionMap.clear();
+			}
 		}
 
 	}
