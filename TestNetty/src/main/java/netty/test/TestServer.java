@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Map.Entry;
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;

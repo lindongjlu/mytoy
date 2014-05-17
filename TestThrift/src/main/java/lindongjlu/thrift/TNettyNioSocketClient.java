@@ -29,23 +29,28 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 
-public class TNettyNioSocketClient implements
-		TBaseClient<TNettyNioSocketClient> {
+public class TNettyNioSocketClient implements TBaseClient {
 
+	private final TProtocolFactory inputProtocolFactory;
+	private final TProtocolFactory outputProtocolFactory;
+	
 	private final NioEventLoopGroup eventLoop;
 	private final String host;
 	private final int port;
 
 	private final NioSocketChannel channel;
-
-	public TNettyNioSocketClient(final TProtocolFactory inputProtocolFactory,
-			final TProtocolFactory outputProtocolFactory,
+	
+	public TNettyNioSocketClient(
+			TProtocolFactory inputProtocolFactory,
+			TProtocolFactory outputProtocolFactory,
 			NioEventLoopGroup eventLoop, String host, int port) {
 
+		this.inputProtocolFactory = inputProtocolFactory;
+		this.outputProtocolFactory = outputProtocolFactory;
 		this.eventLoop = eventLoop;
 		this.host = host;
 		this.port = port;
-
+		
 		this.channel = new NioSocketChannel();
 
 		this.channel.config().setTcpNoDelay(true);
@@ -56,22 +61,22 @@ public class TNettyNioSocketClient implements
 					protected void initChannel(NioSocketChannel ch)
 							throws Exception {
 						ch.pipeline().addLast(
-								new ChannelAdapter(inputProtocolFactory,
-										outputProtocolFactory));
+								new ChannelAdapter(
+										TNettyNioSocketClient.this.inputProtocolFactory,
+										TNettyNioSocketClient.this.outputProtocolFactory));
 					}
 				});
 	}
 
 	@Override
 	public boolean isOpen() {
-		return channel.isActive();
+		return this.channel.isActive();
 	}
 
 	@Override
-	public ListenableFuture<TNettyNioSocketClient> open() {
+	public ListenableFuture<? extends TNettyNioSocketClient> open() {
 		try {
-			final SettableFuture<TNettyNioSocketClient> openFuture = SettableFuture
-					.create();
+			final SettableFuture<TNettyNioSocketClient> openFuture = SettableFuture.create();
 			this.eventLoop.register(this.channel).addListener(
 					new GenericFutureListener<Future<Void>>() {
 
@@ -128,7 +133,7 @@ public class TNettyNioSocketClient implements
 	}
 
 	@Override
-	public ListenableFuture<TNettyNioSocketClient> close() {
+	public ListenableFuture<? extends TNettyNioSocketClient> close() {
 		try {
 			final SettableFuture<TNettyNioSocketClient> closeFuture = SettableFuture
 					.create();
@@ -162,7 +167,25 @@ public class TNettyNioSocketClient implements
 		try {
 			SettableFuture<R> callFuture = SettableFuture.create();
 			channel.writeAndFlush(new RequestMsg(methodName, args, result,
-					callFuture));
+					callFuture, false));
+			return callFuture;
+		} catch (Throwable th) {
+			return Futures.immediateFailedFuture(new TTransportException(
+					TTransportException.UNKNOWN, th));
+		}
+	}
+	
+	@Override
+	public ListenableFuture<Void> callOneWay(String methodName, TBase<?, ?> args) {
+		if (!isOpen()) {
+			return Futures.immediateFailedFuture(new TTransportException(
+					TTransportException.NOT_OPEN, "client is not open"));
+		}
+
+		try {
+			SettableFuture<Void> callFuture = SettableFuture.create();
+			channel.writeAndFlush(new RequestMsg(methodName, args, null,
+					callFuture, true));
 			return callFuture;
 		} catch (Throwable th) {
 			return Futures.immediateFailedFuture(new TTransportException(
@@ -176,13 +199,15 @@ public class TNettyNioSocketClient implements
 		TBase args;
 		TBase result;
 		SettableFuture future;
+		boolean isOneWay;
 
 		RequestMsg(String methodName, TBase args, TBase result,
-				SettableFuture future) {
+				SettableFuture future, boolean isOneWay) {
 			this.methodName = methodName;
 			this.args = args;
 			this.result = result;
 			this.future = future;
+			this.isOneWay = isOneWay;
 		}
 	}
 
@@ -227,22 +252,24 @@ public class TNettyNioSocketClient implements
 			}
 
 			RequestMsg request = (RequestMsg) msg;
-
+			
 			int callId = callIdGenerator++;
 			while (sessionMap.containsKey(callId)) {
 				callId = callIdGenerator++;
 			}
-
-			sessionMap.put(callId, new CallSession(request.result,
-					request.future));
+			
+			if (!request.isOneWay) {
+				sessionMap.put(callId, new CallSession(request.result,
+						request.future));
+			}
 
 			try {
 
-				ByteBuf byteBuf = ctx.alloc().ioBuffer();
-				int pos = byteBuf.writerIndex();
-				byteBuf.writeInt(-1);
+				ByteBuf sendBuf = ctx.alloc().ioBuffer();
+				int pos = sendBuf.writerIndex();
+				sendBuf.writeInt(-1);
 
-				inputTransport.setByteBuf(byteBuf);
+				inputTransport.setByteBuf(sendBuf);
 
 				inputProtocol.writeMessageBegin(new TMessage(
 						request.methodName, TMessageType.CALL, callId));
@@ -252,9 +279,13 @@ public class TNettyNioSocketClient implements
 
 				inputTransport.setByteBuf(null);
 
-				byteBuf.setInt(pos, byteBuf.writerIndex() - pos - 4);
+				sendBuf.setInt(pos, sendBuf.writerIndex() - pos - 4);
 
-				ctx.write(byteBuf);
+				ctx.write(sendBuf);
+				
+				if (request.isOneWay) {
+					request.future.set(null);
+				}
 
 			} catch (TException ex) {
 				sessionMap.remove(callId);
@@ -270,38 +301,36 @@ public class TNettyNioSocketClient implements
 				return;
 			}
 
-			ByteBuf byteBuf = (ByteBuf) msg;
+			ByteBuf recvBuf = (ByteBuf) msg;
 
 			while (true) {
 
-				if (byteBuf.readableBytes() < 4) {
+				if (recvBuf.readableBytes() < 4) {
 					return;
 				}
 
-				int size = byteBuf.getInt(byteBuf.readerIndex());
-				if (byteBuf.readableBytes() < size + 4) {
+				int size = recvBuf.getInt(recvBuf.readerIndex());
+				if (recvBuf.readableBytes() < size + 4) {
 					return;
 				}
-				byteBuf.readInt();
 
-				outputTransport.setByteBuf(byteBuf);
+				outputTransport.setByteBuf(recvBuf.slice(recvBuf.readerIndex() + 4, size));
+				recvBuf.skipBytes(size + 4);
 
 				TMessage tmsg = null;
 				try {
 					tmsg = outputProtocol.readMessageBegin();
 				} catch (TException e) {
-					// data is corrupted, close channel
+					// data may be corrupted
 					outputTransport.setByteBuf(null);
-					ctx.close();
-					return;
+					continue;
 				}
 
 				CallSession session = sessionMap.remove(tmsg.seqid);
 				if (session == null) {
-					// data is corrupted, close channel
-					ctx.close();
+					// data may be corrupted
 					outputTransport.setByteBuf(null);
-					return;
+					continue;
 				}
 
 				try {

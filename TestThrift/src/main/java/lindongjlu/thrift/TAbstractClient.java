@@ -6,12 +6,11 @@ import com.google.common.base.Function;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
-public abstract class TAbstractClient<T extends TAbstractClient<?>> implements
-		TBaseClient<T> {
+public abstract class TAbstractClient implements TBaseClient {
 
-	private final TBaseClient<?> baseClient;
+	private final TBaseClient baseClient;
 
-	protected TAbstractClient(TBaseClient<?> baseClient) {
+	protected TAbstractClient(TBaseClient baseClient) {
 		this.baseClient = baseClient;
 	}
 
@@ -20,22 +19,21 @@ public abstract class TAbstractClient<T extends TAbstractClient<?>> implements
 		return baseClient.isOpen();
 	}
 
-	private final Function<TBaseClient<?>, T> transformFunc = new Function<TBaseClient<?>, T>() {
+	private final Function<TBaseClient, TAbstractClient> transformFunc = new Function<TBaseClient, TAbstractClient>() {
 
-		@SuppressWarnings("unchecked")
 		@Override
-		public T apply(TBaseClient<?> input) {
-			return (T) TAbstractClient.this;
+		public TAbstractClient apply(TBaseClient input) {
+			return TAbstractClient.this;
 		}
 	};
 
 	@Override
-	public ListenableFuture<T> open() {
+	public ListenableFuture<? extends TAbstractClient> open() {
 		return Futures.transform(baseClient.open(), transformFunc);
 	}
 
 	@Override
-	public ListenableFuture<T> close() {
+	public ListenableFuture<? extends TAbstractClient> close() {
 		return Futures.transform(baseClient.close(), transformFunc);
 	}
 
@@ -43,6 +41,11 @@ public abstract class TAbstractClient<T extends TAbstractClient<?>> implements
 	public <R extends TBase<?, ?>> ListenableFuture<R> callBase(
 			String methodName, TBase<?, ?> args, R result) {
 		return baseClient.callBase(methodName, args, result);
+	}
+	
+	@Override
+	public ListenableFuture<Void> callOneWay(String methodName, TBase<?, ?> args) {
+		return baseClient.callOneWay(methodName, args);
 	}
 
 }

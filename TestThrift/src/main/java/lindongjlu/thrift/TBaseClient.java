@@ -6,20 +6,22 @@ import org.apache.thrift.transport.TTransportException;
 
 import com.google.common.util.concurrent.ListenableFuture;
 
-public interface TBaseClient<T extends TBaseClient<?>> {
+public interface TBaseClient {
 
 	boolean isOpen();
 
 	/**
 	 * @throws TTransportException
 	 */
-	ListenableFuture<T> open();
+	ListenableFuture<? extends TBaseClient> open();
 
-	ListenableFuture<T> close();
+	ListenableFuture<? extends TBaseClient> close();
 
 	/**
 	 * @throws TException
 	 */
-	<R extends TBase<?, ?>> ListenableFuture<R> callBase(
-			String methodName, TBase<?, ?> args, R result);
+	<T extends TBase<?, ?>> ListenableFuture<T> callBase(
+			String methodName, TBase<?, ?> args, T result);
+	
+	ListenableFuture<Void> callOneWay(String methodName, TBase<?, ?> args);
 }

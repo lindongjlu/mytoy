@@ -1,7 +1,8 @@
 package lindongjlu.thrift;
 
-import com.google.common.util.concurrent.Service;
+public interface TBaseService {
 
-public interface TBaseService extends Service {
-
+	void initialize();
+	void destory();
+	
 }
