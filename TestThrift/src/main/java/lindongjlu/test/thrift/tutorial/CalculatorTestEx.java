@@ -7,6 +7,9 @@ import lindongjlu.tutorial.CalculatorEx;
 import org.apache.thrift.protocol.TBinaryProtocol;
 import org.apache.thrift.protocol.TProtocolFactory;
 
+import tutorial.Operation;
+import tutorial.Work;
+
 public class CalculatorTestEx {
 
 	public static final String SERVER_IP = "localhost";
@@ -33,9 +36,17 @@ public class CalculatorTestEx {
 		
 		client.open().get();
 		
-		int result = client.add(123, 456).get();
-
-		System.out.println("Calculator client result =: " + result);
+		for (int i= 123; i<456; ++i) {
+			int result = client.add(i, 456).get();
+			System.out.println("Calculator client result =: " + result);
+		}
+		
+		try {
+			client.calculate(1, new Work(1, 2, Operation.ADD)).get();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		client.close().get();
 		eventLoopGroup.shutdownGracefully().get();
