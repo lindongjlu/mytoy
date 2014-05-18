@@ -32,7 +32,7 @@ public class SharedServiceEx {
 		
 		@Override
 		public ListenableFuture<? extends Client> close() {
-			return (ListenableFuture<? extends Client>) super.open();
+			return (ListenableFuture<? extends Client>) super.close();
 		}
 
 		@Override

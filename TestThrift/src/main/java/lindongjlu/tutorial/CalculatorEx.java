@@ -1,11 +1,23 @@
 package lindongjlu.tutorial;
 
-import lindongjlu.thrift.TBaseClient;
+import java.util.HashMap;
+import java.util.Map;
 
+import org.apache.thrift.TBase;
+
+import lindongjlu.thrift.TBaseClient;
+import lindongjlu.tutorial.SharedServiceEx.Iface;
+import lindongjlu.tutorial.SharedServiceEx.Processor.getStruct;
+
+import com.google.common.base.Function;
 import com.google.common.util.concurrent.AsyncFunction;
+import com.google.common.util.concurrent.FutureFallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
+import shared.SharedStruct;
+import shared.SharedService.getStruct_args;
+import shared.SharedService.getStruct_result;
 import tutorial.Calculator.add_args;
 import tutorial.Calculator.add_result;
 import tutorial.Calculator.calculate_args;
@@ -13,6 +25,7 @@ import tutorial.Calculator.calculate_result;
 import tutorial.Calculator.ping_args;
 import tutorial.Calculator.ping_result;
 import tutorial.Calculator.zip_args;
+import tutorial.InvalidOperation;
 import tutorial.Work;
 
 public class CalculatorEx {
@@ -46,7 +59,7 @@ public class CalculatorEx {
 		
 		@Override
 		public ListenableFuture<? extends Client> close() {
-			return (ListenableFuture<? extends Client>) super.open();
+			return (ListenableFuture<? extends Client>) super.close();
 		}
 
 		@Override
@@ -122,6 +135,174 @@ public class CalculatorEx {
 			return super.callOneWay("zip", args);
 		}
 		
+	}
+	
+	public static class Processor<I extends Iface> extends lindongjlu.tutorial.SharedServiceEx.Processor<I> {
+	
+		public Processor() {
+			super(getProcessMap(new HashMap<String, lindongjlu.thrift.TProcessFunction<I, ? extends org.apache.thrift.TBase>>()));
+		}
+		
+		protected Processor(
+				Map<String, lindongjlu.thrift.TProcessFunction<I, ? extends org.apache.thrift.TBase>> processMap) {
+			super(getProcessMap(processMap));
+		}
+		
+		private static <I extends Iface> Map<String, lindongjlu.thrift.TProcessFunction<I, ? extends org.apache.thrift.TBase>> getProcessMap(
+				Map<String, lindongjlu.thrift.TProcessFunction<I, ? extends org.apache.thrift.TBase>> processMap) {
+			processMap.put("ping", new ping<I>());
+			processMap.put("add", new add<I>());
+			processMap.put("calculate", new calculate<I>());
+			processMap.put("zip", new zip<I>());
+			return processMap;
+		}
+		
+		public static class ping<I extends Iface> extends
+				lindongjlu.thrift.TProcessFunction<I, ping_args> {
+		
+			public ping() {
+				super("ping");
+			}
+		
+			@Override
+			public ping_args getEmptyArgsInstance() {
+				return new ping_args();
+			}
+		
+			@Override
+			public boolean isOneway() {
+				return false;
+			}
+		
+			@Override
+			public ListenableFuture<org.apache.thrift.TBase> process(I iface, ping_args args)
+					throws org.apache.thrift.TException {
+				return Futures.transform(iface.ping(), 
+						new Function<Void, org.apache.thrift.TBase>() {
+		
+							@Override
+							public org.apache.thrift.TBase apply(Void input) {
+								ping_result result = new ping_result();
+								return result;
+							}
+		
+						});
+			}
+		}
+				
+		public static class add<I extends Iface> extends
+				lindongjlu.thrift.TProcessFunction<I, add_args> {
+		
+			public add() {
+				super("add");
+			}
+		
+			@Override
+			public add_args getEmptyArgsInstance() {
+				return new add_args();
+			}
+		
+			@Override
+			public boolean isOneway() {
+				return false;
+			}
+		
+			@Override
+			public ListenableFuture<org.apache.thrift.TBase> process(I iface, add_args args)
+					throws org.apache.thrift.TException {
+				return Futures.transform(iface.add(args.num1, args.num2), 
+						new Function<Integer, org.apache.thrift.TBase>() {
+		
+							@Override
+							public org.apache.thrift.TBase apply(Integer input) {
+								add_result result = new add_result();
+								result.success = input;
+								return result;
+							}
+		
+						});
+			}
+		}
+				
+		public static class calculate<I extends Iface> extends
+				lindongjlu.thrift.TProcessFunction<I, calculate_args> {
+		
+			public calculate() {
+				super("calculate");
+			}
+		
+			@Override
+			public calculate_args getEmptyArgsInstance() {
+				return new calculate_args();
+			}
+		
+			@Override
+			public boolean isOneway() {
+				return false;
+			}
+		
+			@Override
+			public ListenableFuture<org.apache.thrift.TBase> process(I iface, calculate_args args)
+					throws org.apache.thrift.TException {
+				return Futures.withFallback(Futures.transform(iface.calculate(args.logid, args.w), 
+						new Function<Integer, org.apache.thrift.TBase>() {
+		
+							@Override
+							public org.apache.thrift.TBase apply(Integer input) {
+								calculate_result result = new calculate_result();
+								result.success = input;
+								result.setSuccessIsSet(true);
+								return result;
+							}
+		
+						}), new FutureFallback<org.apache.thrift.TBase>() {
+
+							@Override
+							public ListenableFuture<org.apache.thrift.TBase> create(Throwable t)
+									throws Exception {
+								if (t instanceof InvalidOperation) {
+									calculate_result result = new calculate_result();
+									result.ouch = (InvalidOperation) t;
+									return Futures.<org.apache.thrift.TBase>immediateFuture(result);
+								}
+								return Futures.immediateFailedFuture(t);
+							}
+						});
+			}
+		}
+				
+		public static class zip<I extends Iface> extends
+				lindongjlu.thrift.TProcessFunction<I, zip_args> {
+		
+			public zip() {
+				super("zip");
+			}
+		
+			@Override
+			public zip_args getEmptyArgsInstance() {
+				return new zip_args();
+			}
+		
+			@Override
+			public boolean isOneway() {
+				return true;
+			}
+		
+			@Override
+			public ListenableFuture<org.apache.thrift.TBase> process(I iface, zip_args args)
+					throws org.apache.thrift.TException {
+				return Futures.transform(iface.zip(), 
+						new Function<Void, org.apache.thrift.TBase>() {
+		
+							@Override
+							public org.apache.thrift.TBase apply(Void input) {
+								return null;
+							}
+		
+						});
+			}
+		}
+	
 	}
 	
 }

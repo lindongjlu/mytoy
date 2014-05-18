@@ -1,10 +1,6 @@
 package lindongjlu.thrift;
 
 import java.net.InetSocketAddress;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelDuplexHandler;
@@ -34,7 +30,6 @@ import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.Service;
-import com.google.common.util.concurrent.SettableFuture;
 
 public class TNettyNioSocketService<I> extends AbstractService implements Service {
 
@@ -127,6 +122,7 @@ public class TNettyNioSocketService<I> extends AbstractService implements Servic
 			
 			// set option
 			// add handler
+			child.pipeline().addLast(new ChannelAdapter());
 			
 			try {
 				workerGroup.register(child).addListener(new ChannelFutureListener() {
@@ -151,7 +147,7 @@ public class TNettyNioSocketService<I> extends AbstractService implements Servic
 		int seqId;
 		String methodName;
 		TBase result;
-		TException exception;
+		TApplicationException exception;
 
 		public ResponseMsg(int seqId, String methodName, TBase result) {
 			this.seqId = seqId;
@@ -160,7 +156,7 @@ public class TNettyNioSocketService<I> extends AbstractService implements Servic
 			this.exception = null;
 		}
 		
-		public ResponseMsg(int seqId, String methodName, TException exception) {
+		public ResponseMsg(int seqId, String methodName, TApplicationException exception) {
 			this.seqId = seqId;
 			this.methodName = methodName;
 			this.exception = exception;
@@ -173,9 +169,10 @@ public class TNettyNioSocketService<I> extends AbstractService implements Servic
 
 		private final ByteBufTransport inputTransport = new ByteBufTransport();
 		private final ByteBufTransport outputTransport = new ByteBufTransport();
-		private final TProtocol inputProtocol = inputProtocolFactory.getProtocol(inputTransport);
-		private final TProtocol outputProtocol = outputProtocolFactory.getProtocol(outputTransport);
+		private final TProtocol inputProtocol = inputProtocolFactory.getProtocol(this.inputTransport);
+		private final TProtocol outputProtocol = outputProtocolFactory.getProtocol(this.outputTransport);
 
+		@SuppressWarnings("rawtypes")
 		@Override
 		public void channelRead(ChannelHandlerContext ctx, Object msg)
 				throws Exception {
@@ -211,7 +208,6 @@ public class TNettyNioSocketService<I> extends AbstractService implements Servic
 
 				TProcessFunction fn = processor.getProccessFunction(tmsg.name);
 				if (fn == null) {
-					
 					ctx.channel().writeAndFlush(
 							new ResponseMsg(tmsg.seqid, tmsg.name, 
 									new TApplicationException(TApplicationException.UNKNOWN_METHOD, "Invalid method name: '" + tmsg.name + "'")));
@@ -240,41 +236,22 @@ public class TNettyNioSocketService<I> extends AbstractService implements Servic
 				
 				ListenableFuture<TBase> future = fn.process(serviceImpl, args);
 				
-				final Channel ch = ctx.channel();
-				Futures.addCallback(future, new FutureCallback<TBase>() {
-
-					@Override
-					public void onSuccess(TBase result) {
-						ch.writeAndFlush(new ResponseMsg(tmsg.seqid, tmsg.name, result));
-					}
-
-					@Override
-					public void onFailure(Throwable t) {
-						if (t instanceof TException) {
-							TException tex = (TException) t;
-							
+				if (!fn.isOneway()) {
+					final Channel ch = ctx.channel();
+					Futures.addCallback(future, new FutureCallback<TBase>() {
+	
+						@Override
+						public void onSuccess(TBase result) {
 							ch.writeAndFlush(new ResponseMsg(tmsg.seqid, tmsg.name, result));
-							
-							
 						}
-					}
-					
-				});
-				
-				
-				try {
-					if (tmsg.type == TMessageType.EXCEPTION) {
-						session.future.setException(TApplicationException
-								.read(outputProtocol));
-					} else {
-						session.result.read(outputProtocol);
-						session.future.set(session.result);
-					}
-					outputProtocol.readMessageEnd();
-				} catch (TException e) {
-					session.future.setException(e);
+	
+						@Override
+						public void onFailure(Throwable t) {
+							ch.writeAndFlush(new ResponseMsg(tmsg.seqid, tmsg.name, new TApplicationException(TApplicationException.INTERNAL_ERROR, t.getMessage())));
+						}
+						
+					});
 				}
-				outputTransport.setByteBuf(null);
 			}
 		}
 		
@@ -282,19 +259,11 @@ public class TNettyNioSocketService<I> extends AbstractService implements Servic
 		public void write(ChannelHandlerContext ctx, Object msg,
 				ChannelPromise promise) throws Exception {
 
-			if (!(msg instanceof RequestMsg)) {
+			if (!(msg instanceof ResponseMsg)) {
 				return;
 			}
 
-			RequestMsg request = (RequestMsg) msg;
-
-			int callId = callIdGenerator++;
-			while (sessionMap.containsKey(callId)) {
-				callId = callIdGenerator++;
-			}
-
-			sessionMap.put(callId, new CallSession(request.result,
-					request.future));
+			ResponseMsg response = (ResponseMsg) msg;
 
 			try {
 
@@ -302,35 +271,29 @@ public class TNettyNioSocketService<I> extends AbstractService implements Servic
 				int pos = byteBuf.writerIndex();
 				byteBuf.writeInt(-1);
 
-				inputTransport.setByteBuf(byteBuf);
+				outputTransport.setByteBuf(byteBuf);
 
-				inputProtocol.writeMessageBegin(new TMessage(
-						request.methodName, TMessageType.CALL, callId));
-				request.args.write(inputProtocol);
-				inputProtocol.writeMessageEnd();
-				inputProtocol.getTransport().flush();
-
-				inputTransport.setByteBuf(null);
+				if (response.result != null) {
+					outputProtocol.writeMessageBegin(new TMessage(
+							response.methodName, TMessageType.REPLY, response.seqId));
+					response.result.write(outputProtocol);
+					outputProtocol.writeMessageEnd();
+				} else {
+					outputProtocol.writeMessageBegin(new TMessage(
+							response.methodName, TMessageType.EXCEPTION, response.seqId));
+					response.exception.write(outputProtocol);
+					outputProtocol.writeMessageEnd();
+				}
+				
+				outputProtocol.getTransport().flush();
+				outputTransport.setByteBuf(null);
 
 				byteBuf.setInt(pos, byteBuf.writerIndex() - pos - 4);
 
 				ctx.write(byteBuf);
 
 			} catch (TException ex) {
-				sessionMap.remove(callId);
-				request.future.setException(ex);
-			}
-		}
-
-		@Override
-		public void channelInactive(ChannelHandlerContext ctx) throws Exception {
-			if (!sessionMap.isEmpty()) {
-				TTransportException ex = new TTransportException(
-						TTransportException.END_OF_FILE, "channel is inactive!");
-				for (Entry<Integer, CallSession> entry : sessionMap.entrySet()) {
-					entry.getValue().future.setException(ex);
-				}
-				sessionMap.clear();
+				ex.printStackTrace();
 			}
 		}
 
