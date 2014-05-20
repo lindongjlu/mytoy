@@ -104,7 +104,7 @@ public class SharedServiceEx {
 							@Override
 							public org.apache.thrift.TBase apply(SharedStruct input) {
 								getStruct_result result = new getStruct_result();
-						        result.success = input;
+								result.setSuccess(input);
 								return result;
 							}
 

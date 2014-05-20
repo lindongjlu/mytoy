@@ -217,6 +217,7 @@ public class CalculatorEx {
 							public org.apache.thrift.TBase apply(Integer input) {
 								add_result result = new add_result();
 								result.success = input;
+								result.setSuccessIsSet(true);
 								return result;
 							}
 		

@@ -2,7 +2,7 @@ package lindongjlu.thrift;
 
 import org.apache.thrift.TBase;
 
-import com.google.common.base.Function;
+import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
@@ -19,11 +19,11 @@ public abstract class TAbstractClient implements TBaseClient {
 		return baseClient.isOpen();
 	}
 
-	private final Function<TBaseClient, TAbstractClient> transformFunc = new Function<TBaseClient, TAbstractClient>() {
+	private final AsyncFunction<TBaseClient, TAbstractClient> transformFunc = new AsyncFunction<TBaseClient, TAbstractClient>() {
 
 		@Override
-		public TAbstractClient apply(TBaseClient input) {
-			return TAbstractClient.this;
+		public ListenableFuture<TAbstractClient> apply(TBaseClient input) {
+			return Futures.immediateFuture(TAbstractClient.this);
 		}
 	};
 

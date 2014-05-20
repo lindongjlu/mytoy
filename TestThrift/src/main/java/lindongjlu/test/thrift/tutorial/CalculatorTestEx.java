@@ -36,6 +36,8 @@ public class CalculatorTestEx {
 		
 		client.open().get();
 		
+		System.out.println("Calculator client getStruct =: " + client.getStruct(123).get());
+		
 		for (int i= 123; i<456; ++i) {
 			int result = client.add(i, 456).get();
 			System.out.println("Calculator client result =: " + result);

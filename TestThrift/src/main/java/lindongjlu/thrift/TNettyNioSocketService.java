@@ -1,6 +1,7 @@
 package lindongjlu.thrift;
 
 import java.net.InetSocketAddress;
+
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelDuplexHandler;
@@ -125,6 +126,9 @@ public class TNettyNioSocketService<I> extends AbstractService implements Servic
 			child.pipeline().addLast(new ChannelAdapter());
 			
 			try {
+//				System.out.println("start to sleep !");
+//				TimeUnit.SECONDS.sleep(5);
+//				System.out.println("finish to sleep !");
 				workerGroup.register(child).addListener(new ChannelFutureListener() {
 					@Override
 					public void operationComplete(ChannelFuture future)

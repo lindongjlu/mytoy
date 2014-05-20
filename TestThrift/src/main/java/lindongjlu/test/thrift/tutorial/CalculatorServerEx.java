@@ -43,7 +43,7 @@ public class CalculatorServerEx {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		CalculatorServer server = new CalculatorServer();
+		CalculatorServerEx server = new CalculatorServerEx();
 		server.startServer();
 	}
 }
