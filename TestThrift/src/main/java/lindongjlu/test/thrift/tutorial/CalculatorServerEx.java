@@ -1,7 +1,11 @@
 package lindongjlu.test.thrift.tutorial;
 
+import java.util.concurrent.Executors;
+
 import lindongjlu.thrift.TBaseProcessor;
+import lindongjlu.thrift.TBaseService;
 import lindongjlu.thrift.TNettyNioSocketService;
+import lindongjlu.thrift.TServiceImplFactory;
 import lindongjlu.tutorial.CalculatorEx;
 import io.netty.channel.nio.NioEventLoopGroup;
 
@@ -24,7 +28,16 @@ public class CalculatorServerEx {
 			TBaseProcessor<CalculatorEx.Iface> tprocessor = new CalculatorEx.Processor<CalculatorEx.Iface>();
 			
 			TNettyNioSocketService<CalculatorEx.Iface> service = 
-					new TNettyNioSocketService<CalculatorEx.Iface>(tprocessor, new CalculatorServiceImplEx(), 
+					new TNettyNioSocketService<CalculatorEx.Iface>(tprocessor,
+							new TServiceImplFactory<CalculatorEx.Iface>(){
+								private final CalculatorServiceImplEx serviceImpl = new CalculatorServiceImplEx();
+								@Override
+								public TBaseService<CalculatorEx.Iface> getServiceImpl() {
+									return serviceImpl;
+								}
+								
+							}, 
+							Executors.newFixedThreadPool(3),
 							protocoFactory, protocoFactory, 
 							eventLoopGroup, eventLoopGroup, 
 							"localhost", SERVER_PORT);

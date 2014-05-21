@@ -1,6 +1,7 @@
 package lindongjlu.thrift;
 
 import java.net.InetSocketAddress;
+import java.util.concurrent.Executor;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
@@ -35,7 +36,8 @@ import com.google.common.util.concurrent.Service;
 public class TNettyNioSocketService<I> extends AbstractService implements Service {
 
 	private final TBaseProcessor<I> processor;
-	private final I serviceImpl;
+	private final TServiceImplFactory<I> serviceImplFactory;
+	private final Executor executor;
 	private final TProtocolFactory inputProtocolFactory;
 	private final TProtocolFactory outputProtocolFactory;
 	
@@ -49,13 +51,15 @@ public class TNettyNioSocketService<I> extends AbstractService implements Servic
 	
 	public TNettyNioSocketService(
 			TBaseProcessor<I> processor,
-			I serviceImpl,
+			TServiceImplFactory<I> serviceImplFactory,
+			Executor executor,
 			TProtocolFactory inputProtocolFactory,
 			TProtocolFactory outputProtocolFactory,
 			NioEventLoopGroup bossGroup, NioEventLoopGroup workerGroup, 
 			String host, int port) {
 		this.processor = processor;
-		this.serviceImpl = serviceImpl;
+		this.serviceImplFactory = serviceImplFactory;
+		this.executor = executor;
 		this.inputProtocolFactory = inputProtocolFactory;
 		this.outputProtocolFactory = outputProtocolFactory;
 		
@@ -121,26 +125,35 @@ public class TNettyNioSocketService<I> extends AbstractService implements Servic
 		public void channelRead(ChannelHandlerContext ctx, Object msg) {
 			final Channel child = (Channel) msg;
 			
-			// set option
-			// add handler
-			child.pipeline().addLast(new ChannelAdapter());
-			
-			try {
-//				System.out.println("start to sleep !");
-//				TimeUnit.SECONDS.sleep(5);
-//				System.out.println("finish to sleep !");
-				workerGroup.register(child).addListener(new ChannelFutureListener() {
-					@Override
-					public void operationComplete(ChannelFuture future)
-							throws Exception {
-						if (!future.isSuccess()) {
-							child.unsafe().closeForcibly();
-						}
+			executor.execute(new Runnable() {
+
+				@Override
+				public void run() {
+					// set option
+					// add handler
+					TBaseService<I> baseService = serviceImplFactory.getServiceImpl();
+					baseService.initialize();
+					child.pipeline().addLast(new ChannelAdapter(baseService));
+					
+					try {
+//						System.out.println("start to sleep !");
+//						TimeUnit.SECONDS.sleep(5);
+//						System.out.println("finish to sleep !");
+						workerGroup.register(child).addListener(new ChannelFutureListener() {
+							@Override
+							public void operationComplete(ChannelFuture future)
+									throws Exception {
+								if (!future.isSuccess()) {
+									child.unsafe().closeForcibly();
+								}
+							}
+						});
+					} catch (Throwable t) {
+						child.unsafe().closeForcibly();
 					}
-				});
-			} catch (Throwable t) {
-				child.unsafe().closeForcibly();
-			}
+				}
+				
+			});
 		}
 		
 	}
@@ -171,11 +184,16 @@ public class TNettyNioSocketService<I> extends AbstractService implements Servic
 	@SuppressWarnings("unchecked")
 	private class ChannelAdapter extends ChannelDuplexHandler {
 
+		private final TBaseService<I> baseService;
 		private final ByteBufTransport inputTransport = new ByteBufTransport();
 		private final ByteBufTransport outputTransport = new ByteBufTransport();
 		private final TProtocol inputProtocol = inputProtocolFactory.getProtocol(this.inputTransport);
 		private final TProtocol outputProtocol = outputProtocolFactory.getProtocol(this.outputTransport);
 
+		public ChannelAdapter(TBaseService<I> baseService) {
+			this.baseService = baseService;
+		}
+		
 		@SuppressWarnings("rawtypes")
 		@Override
 		public void channelRead(ChannelHandlerContext ctx, Object msg)
@@ -210,7 +228,7 @@ public class TNettyNioSocketService<I> extends AbstractService implements Servic
 					continue;
 				}
 
-				TProcessFunction fn = processor.getProccessFunction(tmsg.name);
+				final TProcessFunction fn = processor.getProccessFunction(tmsg.name);
 				if (fn == null) {
 					ctx.channel().writeAndFlush(
 							new ResponseMsg(tmsg.seqid, tmsg.name, 
@@ -222,7 +240,7 @@ public class TNettyNioSocketService<I> extends AbstractService implements Servic
 				}
 				
 				// get empty args
-				TBase args = fn.getEmptyArgsInstance();
+				final TBase args = fn.getEmptyArgsInstance();
 				try {
 					args.read(inputProtocol);
 				} catch (TProtocolException e) {
@@ -238,24 +256,35 @@ public class TNettyNioSocketService<I> extends AbstractService implements Servic
 				inputProtocol.readMessageEnd();
 				inputTransport.setByteBuf(null);
 				
-				ListenableFuture<TBase> future = fn.process(serviceImpl, args);
-				
-				if (!fn.isOneway()) {
-					final Channel ch = ctx.channel();
-					Futures.addCallback(future, new FutureCallback<TBase>() {
-	
-						@Override
-						public void onSuccess(TBase result) {
-							ch.writeAndFlush(new ResponseMsg(tmsg.seqid, tmsg.name, result));
-						}
-	
-						@Override
-						public void onFailure(Throwable t) {
+				final Channel ch = ctx.channel();
+				executor.execute(new Runnable() {
+
+					@Override
+					public void run() {
+						try {
+							ListenableFuture<TBase> future = fn.process(baseService.getService(), args);
+							
+							if (!fn.isOneway()) {
+								Futures.addCallback(future, new FutureCallback<TBase>() {
+
+									@Override
+									public void onSuccess(TBase result) {
+										ch.writeAndFlush(new ResponseMsg(tmsg.seqid, tmsg.name, result));
+									}
+
+									@Override
+									public void onFailure(Throwable t) {
+										ch.writeAndFlush(new ResponseMsg(tmsg.seqid, tmsg.name, new TApplicationException(TApplicationException.INTERNAL_ERROR, t.getMessage())));
+									}
+									
+								});
+							}
+						} catch (Throwable t) {
 							ch.writeAndFlush(new ResponseMsg(tmsg.seqid, tmsg.name, new TApplicationException(TApplicationException.INTERNAL_ERROR, t.getMessage())));
 						}
-						
-					});
-				}
+					}
+					
+				});
 			}
 		}
 		
@@ -299,6 +328,11 @@ public class TNettyNioSocketService<I> extends AbstractService implements Servic
 			} catch (TException ex) {
 				ex.printStackTrace();
 			}
+		}
+		
+		@Override
+		public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+			baseService.destory();
 		}
 
 	}

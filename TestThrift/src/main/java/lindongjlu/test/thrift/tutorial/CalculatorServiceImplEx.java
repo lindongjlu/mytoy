@@ -6,10 +6,26 @@ import com.google.common.util.concurrent.ListenableFuture;
 import shared.SharedStruct;
 import tutorial.InvalidOperation;
 import tutorial.Work;
+import lindongjlu.thrift.TBaseService;
 import lindongjlu.tutorial.CalculatorEx;
 
-public class CalculatorServiceImplEx implements CalculatorEx.Iface {
+public class CalculatorServiceImplEx implements TBaseService<CalculatorEx.Iface>, CalculatorEx.Iface {
 
+	@Override
+	public void initialize() {
+		System.out.println("service initialize");
+	}
+
+	@Override
+	public void destory() {
+		System.out.println("service destory");
+	}
+
+	@Override
+	public CalculatorEx.Iface getService() {
+		return this;
+	}
+	
 	@Override
 	public ListenableFuture<SharedStruct> getStruct(int key) {
 		return Futures.immediateFuture(new SharedStruct(key, "ABCDE"));
