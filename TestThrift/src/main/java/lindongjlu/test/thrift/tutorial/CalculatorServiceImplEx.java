@@ -1,5 +1,7 @@
 package lindongjlu.test.thrift.tutorial;
 
+import java.net.InetSocketAddress;
+
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 
@@ -12,8 +14,8 @@ import lindongjlu.tutorial.CalculatorEx;
 public class CalculatorServiceImplEx implements TBaseService<CalculatorEx.Iface>, CalculatorEx.Iface {
 
 	@Override
-	public void initialize() {
-		System.out.println("service initialize");
+	public void initialize(InetSocketAddress remoteAddress) {
+		System.out.println("service initialize : " + remoteAddress);
 	}
 
 	@Override
@@ -22,7 +24,7 @@ public class CalculatorServiceImplEx implements TBaseService<CalculatorEx.Iface>
 	}
 
 	@Override
-	public CalculatorEx.Iface getService() {
+	public CalculatorEx.Iface asService() {
 		return this;
 	}
 	

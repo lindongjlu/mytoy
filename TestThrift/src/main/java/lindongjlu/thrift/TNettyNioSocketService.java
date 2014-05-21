@@ -13,6 +13,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.ChannelPromise;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 
@@ -44,8 +45,7 @@ public class TNettyNioSocketService<I> extends AbstractService implements Servic
 	private final NioEventLoopGroup bossGroup;
 	private final NioEventLoopGroup workerGroup;
 	
-	private final String host;
-	private final int port;
+	private final InetSocketAddress bindAddress;
 	
 	private final NioServerSocketChannel channel;
 	
@@ -56,7 +56,7 @@ public class TNettyNioSocketService<I> extends AbstractService implements Servic
 			TProtocolFactory inputProtocolFactory,
 			TProtocolFactory outputProtocolFactory,
 			NioEventLoopGroup bossGroup, NioEventLoopGroup workerGroup, 
-			String host, int port) {
+			InetSocketAddress bindAddress) {
 		this.processor = processor;
 		this.serviceImplFactory = serviceImplFactory;
 		this.executor = executor;
@@ -66,8 +66,7 @@ public class TNettyNioSocketService<I> extends AbstractService implements Servic
 		this.bossGroup = bossGroup;
 		this.workerGroup = workerGroup;
 		
-		this.host = host;
-		this.port = port;
+		this.bindAddress = bindAddress;
 		
 		this.channel = new NioServerSocketChannel();
 		this.channel.config().setBacklog(100);
@@ -81,7 +80,7 @@ public class TNettyNioSocketService<I> extends AbstractService implements Servic
 			@Override
 			public void operationComplete(Future<Void> future) throws Exception {
 				if (future.isSuccess()) {
-					TNettyNioSocketService.this.channel.bind(new InetSocketAddress(host, port)).addListener(new GenericFutureListener<Future<Void>>() {
+					TNettyNioSocketService.this.channel.bind(bindAddress).addListener(new GenericFutureListener<Future<Void>>() {
 
 						@Override
 						public void operationComplete(Future<Void> future)
@@ -123,7 +122,7 @@ public class TNettyNioSocketService<I> extends AbstractService implements Servic
 		
 		@Override
 		public void channelRead(ChannelHandlerContext ctx, Object msg) {
-			final Channel child = (Channel) msg;
+			final NioSocketChannel child = (NioSocketChannel) msg;
 			
 			executor.execute(new Runnable() {
 
@@ -132,7 +131,7 @@ public class TNettyNioSocketService<I> extends AbstractService implements Servic
 					// set option
 					// add handler
 					TBaseService<I> baseService = serviceImplFactory.getServiceImpl();
-					baseService.initialize();
+					baseService.initialize(child.remoteAddress());
 					child.pipeline().addLast(new ChannelAdapter(baseService));
 					
 					try {
@@ -262,7 +261,7 @@ public class TNettyNioSocketService<I> extends AbstractService implements Servic
 					@Override
 					public void run() {
 						try {
-							ListenableFuture<TBase> future = fn.process(baseService.getService(), args);
+							ListenableFuture<TBase> future = fn.process(baseService.asService(), args);
 							
 							if (!fn.isOneway()) {
 								Futures.addCallback(future, new FutureCallback<TBase>() {

@@ -35,21 +35,19 @@ public class TNettyNioSocketClient implements TBaseClient {
 	private final TProtocolFactory outputProtocolFactory;
 	
 	private final NioEventLoopGroup eventLoop;
-	private final String host;
-	private final int port;
+	private final InetSocketAddress remoteAddress;
 
 	private final NioSocketChannel channel;
 	
 	public TNettyNioSocketClient(
 			TProtocolFactory inputProtocolFactory,
 			TProtocolFactory outputProtocolFactory,
-			NioEventLoopGroup eventLoop, String host, int port) {
+			NioEventLoopGroup eventLoop, InetSocketAddress remoteAddress) {
 
 		this.inputProtocolFactory = inputProtocolFactory;
 		this.outputProtocolFactory = outputProtocolFactory;
 		this.eventLoop = eventLoop;
-		this.host = host;
-		this.port = port;
+		this.remoteAddress = remoteAddress;
 		
 		this.channel = new NioSocketChannel();
 
@@ -87,9 +85,7 @@ public class TNettyNioSocketClient implements TBaseClient {
 								if (future.isSuccess()) {
 
 									TNettyNioSocketClient.this.channel
-											.connect(
-													new InetSocketAddress(host,
-															port))
+											.connect(remoteAddress)
 											.addListener(
 													new GenericFutureListener<Future<Void>>() {
 

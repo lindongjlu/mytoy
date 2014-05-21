@@ -1,5 +1,7 @@
 package lindongjlu.test.thrift.tutorial;
 
+import java.net.InetSocketAddress;
+
 import io.netty.channel.nio.NioEventLoopGroup;
 import lindongjlu.thrift.TNettyNioSocketClient;
 import lindongjlu.tutorial.CalculatorEx;
@@ -28,7 +30,7 @@ public class CalculatorTestEx {
 		NioEventLoopGroup eventLoopGroup = new NioEventLoopGroup();
 		
 		TProtocolFactory protocoFactory = new TBinaryProtocol.Factory();
-		TNettyNioSocketClient baseClient = new TNettyNioSocketClient(protocoFactory, protocoFactory, eventLoopGroup, SERVER_IP, SERVER_PORT);
+		TNettyNioSocketClient baseClient = new TNettyNioSocketClient(protocoFactory, protocoFactory, eventLoopGroup, new InetSocketAddress(SERVER_IP, SERVER_PORT));
 		
 		// netty init end
 		

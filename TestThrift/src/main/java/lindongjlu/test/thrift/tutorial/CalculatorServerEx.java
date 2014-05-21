@@ -1,5 +1,6 @@
 package lindongjlu.test.thrift.tutorial;
 
+import java.net.InetSocketAddress;
 import java.util.concurrent.Executors;
 
 import lindongjlu.thrift.TBaseProcessor;
@@ -40,7 +41,8 @@ public class CalculatorServerEx {
 							Executors.newFixedThreadPool(3),
 							protocoFactory, protocoFactory, 
 							eventLoopGroup, eventLoopGroup, 
-							"localhost", SERVER_PORT);
+							new InetSocketAddress("localhost", SERVER_PORT)
+							);
 			
 			service.startAsync();
 			

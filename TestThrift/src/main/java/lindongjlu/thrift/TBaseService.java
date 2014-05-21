@@ -1,9 +1,11 @@
 package lindongjlu.thrift;
 
+import java.net.InetSocketAddress;
+
 public interface TBaseService<I> {
 
-	void initialize();
+	void initialize(InetSocketAddress remoteAddress);
 	void destory();
-	I getService();
+	I asService();
 	
 }
