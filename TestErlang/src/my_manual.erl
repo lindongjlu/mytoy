@@ -1,21 +1,16 @@
 %% @author lindongjlu
-%% @doc @todo Add description to hello_world.
-%%
-%% pwd().
-%% cd("E:/workgit/mytoy/TestErlang/src/").
-%% c("hello_world").
-%% hello_world:printHelloWorld().
+%% @doc @todo Add description to my_manual.
 
 
--module(hello_world).
+-module(my_manual).
 
 %% ====================================================================
 %% API functions
 %% ====================================================================
--export([printHelloWorld/0]).
+-export([test/0]).
 
-printHelloWorld() ->
-	io:format("Hello World!~n").
+
+
 
 %% ====================================================================
 %% Internal functions
