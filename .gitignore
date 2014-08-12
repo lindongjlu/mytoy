@@ -26,3 +26,4 @@ TestThrift/target
 TestNetty/target
 TestLuaJ/target
 TestJetty/target
+TestMyBatis/target
