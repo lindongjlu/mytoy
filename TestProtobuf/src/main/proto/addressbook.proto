@@ -2,6 +2,7 @@ package tutorial;
 
 option java_package = "com.example.tutorial";
 option java_outer_classname = "AddressBookProtos";
+option java_generic_services = true;
 
 message Person {
   required string name = 1;
@@ -17,6 +18,7 @@ message Person {
   message PhoneNumber {
     required string number = 1;
     optional PhoneType type = 2 [default = HOME];
+    optional PhoneNumber n =3;
   }
 
   repeated PhoneNumber phone = 4;
@@ -24,4 +26,16 @@ message Person {
 
 message AddressBook {
   repeated Person person = 1;
+}
+
+message FooRequest {
+  required int32 arg = 1;
+}
+
+message FooResponse {
+  required int32 result = 1;
+}
+
+service Foo {
+  rpc Bar(FooRequest) returns(FooResponse);
 }
