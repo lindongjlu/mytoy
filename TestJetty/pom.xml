@@ -38,5 +38,10 @@
 		    <artifactId>jetty-server</artifactId>
 		    <version>9.2.2.v20140723</version>
 		</dependency>
+		<dependency>
+		    <groupId>org.eclipse.jetty.example-async-rest</groupId>
+		    <artifactId>example-async-rest-jar</artifactId>
+		    <version>9.2.3.v20140905</version>
+		</dependency>
 	</dependencies>
 </project>
