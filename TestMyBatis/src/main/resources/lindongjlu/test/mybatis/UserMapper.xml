@@ -2,8 +2,31 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="lindongjlu.test.mybatis.UserMapper">
 
-	<select id="getUser" parameterType="int" resultType="lindongjlu.test.mybatis.User">
-		SELECT * FROM users WHERE id = #{value}
+	<resultMap id="User" type="lindongjlu.test.mybatis.User">
+		<constructor>
+			<idArg column="user_id" javaType="int" />
+		</constructor>
+		<result property="name" column="name" />
+		<result property="gender" column="gender" />
+		<association property="testAssociation" javaType="lindongjlu.test.mybatis.User$TestAssociation">
+			<result property="testAssociation" column="test_association" />
+		</association>
+		<collection property="testCollection" ofType="lindongjlu.test.mybatis.User$TestCollection">
+			<result property="testCollection" column="test_collection" />
+		</collection>
+	</resultMap>
+    
+	<select id="getUser" parameterType="int" resultMap="User">
+		SELECT 
+		  U.id as user_id,
+		  U.name as name,
+		  U.gender as gender,
+		  A.test_association as test_association,
+		  C.test_collection as test_collection
+		FROM users U 
+		LEFT OUTER JOIN user_association A ON U.id = A.user_id
+		LEFT OUTER JOIN user_collection C ON U.id = C.user_id
+		WHERE U.id = #{value}
 	</select>
 
 	<insert id="insertUser" parameterType="lindongjlu.test.mybatis.User" useGeneratedKeys="true" keyProperty="id" keyColumn="id">

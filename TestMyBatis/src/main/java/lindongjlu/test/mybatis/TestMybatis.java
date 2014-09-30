@@ -37,6 +37,8 @@ public class TestMybatis {
 			assertEquals(user.getName(), "猪头");
 			assertEquals(user.getGender(), User.Gender.F);
 			
+			System.out.println(user.toString());
+			
 		} finally {
 			sqlSession.close();
 		}
@@ -48,7 +50,7 @@ public class TestMybatis {
 		try {
 			UserMapper mapper = sqlSession.getMapper(UserMapper.class);
 
-			User user = new User();
+			User user = new User(0);
 			user.setName("哈哈大猪头");
 			user.setGender(User.Gender.M);
 			
@@ -85,4 +87,10 @@ public class TestMybatis {
 			sqlSession.close();
 		}
 	}
+	
+// 参数化测试编写流程如下：
+//	a.为参数化测试类用@RunWith注释指定特殊的运行器：Parameterized.class；
+//	b.在测试类中声明几个变量，分别用于存储期望值和测试用的数据，并创建一个使用者几个参数的构造函数；
+//	c.创建一个静态（static）测试数据供给（feed）方法，其返回类型为Collection，并用@Parameter注释以修饰；
+//	d.编写测试方法（用@Test注释）。
 }
