@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="lindongjlu.test.mybatis.UserMapper">
+
+	<select id="getUser" parameterType="int" resultType="lindongjlu.test.mybatis.User">
+		SELECT * FROM users WHERE id = #{value}
+	</select>
+
+	<insert id="insertUser" parameterType="lindongjlu.test.mybatis.User" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+		INSERT INTO users (name, gender) VALUES (#{name}, #{gender})
+	</insert>
+
+	<update id="updateUser" parameterType="lindongjlu.test.mybatis.User">
+		UPDATE users SET
+		  name = #{name},
+		  gender = #{gender}
+		WHERE id = #{id}
+	</update>
+
+	<update id="deleteUser" parameterType="int">
+		DELETE FROM users WHERE id = #{value}
+	</update>
+
+</mapper>
